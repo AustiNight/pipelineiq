@@ -208,4 +208,81 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 // === /PP:FUNC:main ===
 
+// === PP:FUNC:perf-init ===
+function perfInit() {
+  // Lazy-load all images: native loading + IntersectionObserver fallback
+  var imgs = Array.prototype.slice.call(document.querySelectorAll('img'));
+  imgs.forEach(function (img) {
+    if (!img.hasAttribute('loading')) {
+      img.setAttribute('loading', 'lazy');
+    }
+    if (!img.hasAttribute('decoding')) {
+      img.setAttribute('decoding', 'async');
+    }
+  });
+
+  if ('IntersectionObserver' in window) {
+    var lazyImgs = imgs.filter(function (img) {
+      return img.dataset && img.dataset.src;
+    });
+    if (lazyImgs.length) {
+      var io = new IntersectionObserver(function (entries, obs) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var el = entry.target;
+            if (el.dataset.src) {
+              el.src = el.dataset.src;
+              el.removeAttribute('data-src');
+            }
+            obs.unobserve(el);
+          }
+        });
+      }, { rootMargin: '200px 0px' });
+      lazyImgs.forEach(function (img) { io.observe(img); });
+    }
+  }
+
+  // Core Web Vitals tracking (LCP, FID/INP, CLS) via PerformanceObserver
+  if ('PerformanceObserver' in window) {
+    try {
+      var lcpObserver = new PerformanceObserver(function (list) {
+        var entries = list.getEntries();
+        var last = entries[entries.length - 1];
+        if (last) {
+          console.log('[Web Vitals] LCP:', Math.round(last.renderTime || last.loadTime || last.startTime), 'ms');
+        }
+      });
+      lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
+    } catch (e) {}
+
+    try {
+      var fidObserver = new PerformanceObserver(function (list) {
+        list.getEntries().forEach(function (entry) {
+          console.log('[Web Vitals] FID:', Math.round(entry.processingStart - entry.startTime), 'ms');
+        });
+      });
+      fidObserver.observe({ type: 'first-input', buffered: true });
+    } catch (e) {}
+
+    try {
+      var clsValue = 0;
+      var clsObserver = new PerformanceObserver(function (list) {
+        list.getEntries().forEach(function (entry) {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value;
+          }
+        });
+        console.log('[Web Vitals] CLS:', clsValue.toFixed(4));
+      });
+      clsObserver.observe({ type: 'layout-shift', buffered: true });
+    } catch (e) {}
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', perfInit);
+} else {
+  perfInit();
+}
+// === /PP:FUNC:perf-init ===
 // PP:JS_INSERT_POINT
