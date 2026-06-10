@@ -1566,3 +1566,18 @@ body {
 
 
 /* PP:CSS_INSERT_POINT */
+
+/* === PP:BLOCK:imagery-executor-atom-11-implement-lazy-loading-for-images-and-performance === */
+.pp-imagery-executor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.pp-imagery-executor__img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+/* === /PP:BLOCK:imagery-executor-atom-11-implement-lazy-loading-for-images-and-performance === */
