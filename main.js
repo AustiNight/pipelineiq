@@ -115,43 +115,53 @@ function initReveal() {
 
 
 // === PP:FUNC:faq-init ===
-(() => {
-  const section = document.querySelector('[data-pp-section="faq"]');
-  if (!section) {
-    return;
-  }
-  const items = Array.from(section.querySelectorAll('[data-faq-item]'));
-  if (items.length === 0) {
-    return;
-  }
-  const setAnswerHeight = (item, open) => {
-    const answer = item.querySelector('[data-faq-answer]');
-    if (!answer) {
-      return;
-    }
-    if (!open) {
-      answer.style.maxHeight = '0px';
-      return;
-    }
-    requestAnimationFrame(() => {
-      answer.style.maxHeight = `${answer.scrollHeight}px`;
-    });
-  };
-  items.forEach((item) => {
-    setAnswerHeight(item, item.open);
-    item.addEventListener('toggle', () => {
+
+function faqInit() {
+  var list = document.querySelector('[data-faq-list]');
+  if (!list) return;
+  var items = Array.prototype.slice.call(list.querySelectorAll('[data-faq-item]'));
+  if (!items.length) return;
+
+  items.forEach(function (item) {
+    var summary = item.querySelector('.faq__question');
+    if (!summary) return;
+    summary.setAttribute('role', 'button');
+    summary.setAttribute('tabindex', '0');
+    summary.setAttribute('aria-expanded', item.open ? 'true' : 'false');
+
+    item.addEventListener('toggle', function () {
+      summary.setAttribute('aria-expanded', item.open ? 'true' : 'false');
       if (item.open) {
-        items.forEach((other) => {
+        items.forEach(function (other) {
           if (other !== item && other.open) {
             other.open = false;
-            setAnswerHeight(other, false);
           }
         });
       }
-      setAnswerHeight(item, item.open);
+    });
+
+    summary.addEventListener('keydown', function (event) {
+      var key = event.key;
+      var index = items.indexOf(item);
+      if (key === 'ArrowDown' || key === 'ArrowUp') {
+        event.preventDefault();
+        var dir = key === 'ArrowDown' ? 1 : -1;
+        var next = (index + dir + items.length) % items.length;
+        var target = items[next].querySelector('.faq__question');
+        if (target) target.focus();
+      } else if (key === 'Home') {
+        event.preventDefault();
+        var first = items[0].querySelector('.faq__question');
+        if (first) first.focus();
+      } else if (key === 'End') {
+        event.preventDefault();
+        var lastEl = items[items.length - 1].querySelector('.faq__question');
+        if (lastEl) lastEl.focus();
+      }
     });
   });
-})();
+}
+
 // === /PP:FUNC:faq-init ===
 
 
